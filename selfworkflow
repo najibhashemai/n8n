@@ -1,1 +1,268 @@
-//hello start from here
+{
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "create",
+        "workflowObject": "={{ $json.workflow | toJson }}",
+        "requestOptions": {}
+      },
+      "id": "936a2296-7705-44e6-a435-4a899ef69623",
+      "name": "Create Workflow",
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        -100
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.success }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "equal"
+              },
+              "rightValue": true
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "52db81bd-2ca7-4c47-ac4a-d1423ca5bb4b",
+      "name": "Success Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -680,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// parse, validate, error-reporting"
+      },
+      "id": "745fa286-1e6f-40a4-ad18-6708dd0b2038",
+      "name": "Validate & Extract",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        -20
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "8c68f122-fd87-457f-a88a-fd7ba5180154",
+      "name": "HTTP Tool",
+      "type": "@n8n/langchain.httpTool",
+      "typeVersion": 1,
+      "position": [
+        -440,
+        100
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "594409e5-e9b0-4a6a-9ec5-9cbd9a8a97b3",
+      "name": "Calculator Tool",
+      "type": "@n8n/langchain.calculatorTool",
+      "typeVersion": 1,
+      "position": [
+        -640,
+        100
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "a1c46d53-2b99-4074-9fd8-76140ae3950c",
+      "name": "Time Tool",
+      "type": "@n8n/langchain.timeTool",
+      "typeVersion": 1,
+      "position": [
+        -840,
+        100
+      ]
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 15
+      },
+      "id": "b5e25b96-2574-4bbf-85e9-b1c43fa7a9c3",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1100,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "model": "chatgpt-4o-latest",
+        "options": {}
+      },
+      "id": "97bd36b8-8fd5-4c6f-86d3-7c802c3da963",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -1280,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "You are an expert n8n Workflow Architect with deep expertise in n8n's node ecosystem, integration patterns, and automation best practices. When invoked, generate a self-contained, production-ready n8n workflow JSON that meets the user's requirements. Your output must: \n- Begin with a Telegram Trigger.\n- Include an AI Agent node wired with an OpenAI chat model, memory, and the Time, Calculator, and HTTP tools.\n- Use Code nodes for robust JSON parsing/validation with try/catch.\n- Implement conditional branching (IF/Switch) and a Wait node for retry logic.\n- Append metadata: version, generatedBy, generatedAt, and SHA-256 signature.\n- Log analytics to Google Sheets.\n- Follow naming/positioning conventions and reference data expressions (e.g., {{$node[\"NodeName\"].json.field}}).\n- Reference credentials as {{ telegramApi.name }}, {{ openAiApi.name }}, etc.\n- Return ONLY valid JSON for the full workflow."
+        }
+      },
+      "id": "d71bd587-0d42-40b7-8db0-7622224a6982",
+      "name": "AI Workflow Architect",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        -1240,
+        -20
+      ]
+    },
+    {
+      "parameters": {
+        "additionalFields": {}
+      },
+      "id": "c5cc61a7-5322-4caa-9938-7d8b9638470d",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1460,
+        -20
+      ],
+      "webhookId": "8d19bf92-7830-4663-b3b8-be655cc71cd6",
+      "credentials": {
+        "telegramApi": {
+          "id": "bA6Dq1pvBOXddI4y",
+          "name": "Telegram account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Success Check": {
+      "main": [
+        [
+          {
+            "node": "Create Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Validate & Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate & Extract": {
+      "main": [
+        [
+          {
+            "node": "Success Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Workflow Architect": {
+      "main": [
+        [
+          {
+            "node": "Validate & Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Workflow Architect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "main": [
+        [
+          {
+            "node": "AI Workflow Architect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Memory": {
+      "main": [
+        [
+          {
+            "node": "AI Workflow Architect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Time Tool": {
+      "main": [
+        [
+          {
+            "node": "AI Workflow Architect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator Tool": {
+      "main": [
+        [
+          {
+            "node": "AI Workflow Architect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Tool": {
+      "main": [
+        [
+          {
+            "node": "AI Workflow Architect",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "097e85335b711b6463c7ec7d9c8c64ab0613fc3df60837dbb059163fa9f91bac"
+  }
+}
